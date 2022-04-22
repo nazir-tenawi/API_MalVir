@@ -20,9 +20,9 @@ namespace MalVirDetector_CLI_API.Logic
     public class Scan_Manager
     {
 
-        public static Scan_Search_File_Model Scan_File(File_Attachments Attachments, long UserID)
+        public static Scan_Model Scan_File(File_Attachments Attachments, long UserID)
         {
-            Scan_Search_File_Model res = new Scan_Search_File_Model();
+            Scan_Model res = new Scan_Model();
             try
             {
                 var path = Save_Attachments(Attachments);
@@ -30,7 +30,7 @@ namespace MalVirDetector_CLI_API.Logic
                 SP_Scan_Search sp = new SP_Scan_Search();
                 sp.HashContent = (string) hashContent;
 
-                res = DataManager.ExecuteSPGetSingle<Scan_Search_File_Model, SP_Scan_Search>(sp);
+                res = DataManager.ExecuteSPGetSingle<Scan_Model, SP_Scan_Search>(sp);
             }
             catch (Exception ex)
             {
@@ -39,12 +39,27 @@ namespace MalVirDetector_CLI_API.Logic
             return res;
         }
 
-        public static Scan_Search_File_Model Scan_Wireshark(File_Attachments Attachments, long UserID)
+        public static Tuple<int, List<Scan_Model>> Scan_Wireshark(File_Attachments Attachments, long UserID)
         {
-            Scan_Search_File_Model res = new Scan_Search_File_Model();
+            List<Scan_Model> res2 = new List<Scan_Model>();
+            Tuple<int, List<Scan_Model>> res = null;
+
             try
             {
-                    Save_Attachments(Attachments);
+                    string path = Save_Attachments(Attachments);
+                    // string[] lines = System.IO.File.ReadAllLines(@"C:\Users\Public\TestFolder\WriteLines2.txt");
+                    string[] lines = System.IO.File.ReadAllLines(@path);
+                    List<string> filteredList = lines.Where(x => x.IndexOf("[Frame MD5 Hash") > 0).ToList();
+                    List<Scan_Model> TrimmedList = filteredList.Select(x => new Scan_Model() { HashContent = x.Substring(x.IndexOf(":") + 2 , x.IndexOf(":") + 13)}).ToList();
+                    foreach (Scan_Model line in TrimmedList)
+                    {
+                        SP_Scan_Search sp = new SP_Scan_Search(){HashContent = (string) line.HashContent };
+                        var hashRes = DataManager.ExecuteSPGetSingle<Scan_Model, SP_Scan_Search>(sp);
+                        if (hashRes != null){
+                            res2.Add(hashRes);
+                        }
+                    }
+                    res = new Tuple<int, List<Scan_Model>>(TrimmedList.Count, res2);
             }
             catch (Exception ex)
             {
@@ -54,16 +69,16 @@ namespace MalVirDetector_CLI_API.Logic
         }
 
 
-        public static Scan_Search_File_Model Scan_Search(string HashContent, long UserID)
+        public static Scan_Model Scan_Search(string HashContent, long UserID)
         {
-            Scan_Search_File_Model res = new Scan_Search_File_Model();
+            Scan_Model res = new Scan_Model();
             try
             {
 
                 SP_Scan_Search sp = new SP_Scan_Search();
                 sp.HashContent = (string) HashContent;
 
-                res = DataManager.ExecuteSPGetSingle<Scan_Search_File_Model, SP_Scan_Search>(sp);
+                res = DataManager.ExecuteSPGetSingle<Scan_Model, SP_Scan_Search>(sp);
             }
             catch (Exception ex)
             {

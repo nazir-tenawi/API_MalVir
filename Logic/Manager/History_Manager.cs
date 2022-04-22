@@ -46,7 +46,7 @@ namespace MalVirDetector_CLI_API.Logic
             return res;
         }
 
-        public static Tuple<long, string> History_Create(Scan_Search_File_Model model,long UserID, int ScanTypeID)
+        public static Tuple<long, string> History_Create(Scan_Model model,long UserID, int ScanTypeID)
         {
             Tuple<long, string> res = null;
             try

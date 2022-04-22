@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MalVirDetector_CLI_API.Model
 {
-    public class Scan_Search_File_Model
+    public class Scan_Model
     {
         public long HashID { get; set; }
         public string Type { get; set; }
